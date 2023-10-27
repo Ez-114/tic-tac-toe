@@ -1,134 +1,101 @@
-from glob import glob
-from tkinter import *
-import random
+import pygame, sys
+import numpy as np
+
+pygame.init()
+
+# figures colors
+RED = (255, 0, 0)
+
+# Screen coordinates
+WIDTH = 600
+HEIGHT = 600
+
+# board rows and cols
+BOARD_ROWS = 3
+BOARD_COLS = 3
+
+# Lines color, width
+LINE_COLOR = (23, 145, 135)
+LINE_WIDTH = 15
+
+# Back ground color
+BG_COLOR = (28, 170, 156)
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# title, screen color in RGB format
+pygame.display.set_caption('TIC TAC TOE')
+screen.fill(BG_COLOR)
+
+# board filled with zeros
+board = np.zeros((BOARD_ROWS, BOARD_COLS))
+
+# Draw game lines
+def draw_lines():
+    # 1 horizontal
+    pygame.draw.line(screen, LINE_COLOR, (20, 200), (580, 200), LINE_WIDTH)
+    # 2 horizontal
+    pygame.draw.line(screen, LINE_COLOR, (20, 400), (580, 400), LINE_WIDTH)
+
+    # 1 vertical
+    pygame.draw.line(screen, LINE_COLOR, (200, 20), (200, 580), LINE_WIDTH)
+    # 2 vertical
+    pygame.draw.line(screen, LINE_COLOR, (400, 20), (400, 580), LINE_WIDTH)
+
+def draw_figs():
+    for row in range(BOARD_ROWS):
+        for col in range(BOARD_COLS):
+            if board[row][col] == 1:
+                pygame.draw.circle(screen, RED, (int(col * 200 + 100 / 2)), (int(row * 200 + 100 / 2)) )
 
 
-def next_turn(row, col):
-    global player
-    if game_btns[row][col]['text'] == "" and check_winner() == False:
-        if player == players[0]:
-            # Put player 1 sympol
-            game_btns[row][col]['text'] = player
+# mark square with values in the board
+def mark_square(row, col, player):
+    board[row][col] = player
 
-            if check_winner() == False:
-                # switch player
-                player = players[1]
-                label.config(text=(players[1] + " turn"))
-
-            elif check_winner() == True:
-                label.config(text=(players[0] + " wins!"))
-
-            elif check_winner() == 'tie':
-                label.config(text=("Tie, No Winner!"))
-
-        elif player == players[1]:
-            # Put player 2 sympol
-            game_btns[row][col]['text'] = player
-
-            if check_winner() == False:
-                # switch player
-                player = players[0]
-                label.config(text=(players[0] + " turn"))
-
-            elif check_winner() == True:
-                label.config(text=(players[1] + " wins!"))
-
-            elif check_winner() == 'tie':
-                label.config(text=("Tie, No Winner!"))
-
-
-def check_winner():
-    # check all 3 horizontal conditions
-    for row in range(3):
-        if game_btns[row][0]['text'] == game_btns[row][1]['text'] == game_btns[row][2]['text'] != "":
-            game_btns[row][0].config(bg="cyan")
-            game_btns[row][1].config(bg="cyan")
-            game_btns[row][2].config(bg="cyan")
-            return True
-
-    # check all 3 vertical conditions
-    for col in range(3):
-        if game_btns[0][col]['text'] == game_btns[1][col]['text'] == game_btns[2][col]['text'] != "":
-            game_btns[0][col].config(bg="cyan")
-            game_btns[1][col].config(bg="cyan")
-            game_btns[2][col].config(bg="cyan")
-            return True
-
-    # check diagonals conditions
-    if game_btns[0][0]['text'] == game_btns[1][1]['text'] == game_btns[2][2]['text'] != "":
-        game_btns[0][0].config(bg="cyan")
-        game_btns[1][1].config(bg="cyan")
-        game_btns[2][2].config(bg="cyan")
+# check if there is empty squares in the board
+def avilable_square(row, col):
+    if board[row][col] == 0:
         return True
-    elif game_btns[0][2]['text'] == game_btns[1][1]['text'] == game_btns[2][0]['text'] != "":
-        game_btns[0][2].config(bg="cyan")
-        game_btns[1][1].config(bg="cyan")
-        game_btns[2][0].config(bg="cyan")
-        return True
-
-    # if there are no empty spaces left
-    if check_empty_spaces() == False:
-        for row in range(3):
-            for col in range(3):
-                game_btns[row][col].config(bg='red')
-
-        return 'tie'
-
     else:
         return False
 
+# check if board if full
+def is_board_full():
+    for row in range(BOARD_ROWS):
+        for col in range(BOARD_COLS):
+            if board[row][col] == 0:
+                return False
 
-def check_empty_spaces():
-    spaces = 9
-
-    for row in range(3):
-        for col in range(3):
-            if game_btns[row][col]['text'] != "":
-                spaces -= 1
-
-    if spaces == 0:
-        return False
-    else:
-        return True
+    return True
 
 
-def start_new_game():
-    global player
-    player = random.choice(players)
+draw_lines()
 
-    label.config(text=(player + " turn"))
+player = 1
 
-    for row in range(3):
-        for col in range(3):
-            game_btns[row][col].config(text="", bg="#F0F0F0")
+# mainloop
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
 
+        # link console board with the screen board
+        if event.type == pygame.MOUSEBUTTONDOWN:
+           mouseX = event.pos[0] # x
+           mouseY = event.pos[1] # y
 
-window = Tk()
-window.title("Tic-Tac-Toe Korsat-X-Parmaga")
+           clicked_row = int(mouseY // 200)
+           clicked_col = int(mouseX // 200)
 
-players = ["x", "o"]
-player = random.choice(players)
+           if avilable_square(clicked_row, clicked_col):
+                if player == 1:
+                    mark_square(clicked_row, clicked_col, player)
+                    player = 2
+                elif player == 2:
+                    mark_square(clicked_row, clicked_col, player)
+                    player = 1
+                print(board)
 
-game_btns = [
-    [0, 0, 0],
-    [0, 0, 0],
-    [0, 0, 0]
-]
-
-label = Label(text=(player + " turn"), font=('consolas', 40))
-label.pack(side="top")
-
-restart_btn = Button(text="restart", font=(
-    'consolas', 20), command=start_new_game)
-restart_btn.pack(side="top")
-
-btns_frame = Frame(window)
-btns_frame.pack()
-
-for row in range(3):
-    for col in range(3):
-        game_btns[row][col] = Button(btns_frame, text="", font=('consolas', 50), width=4, height=1,
-                                     command=lambda row=row, col=col: next_turn(row, col))
-        game_btns[row][col].grid(row=row, column=col)
-
-window.mainloop()
+    # update screen
+    pygame.display.update()
